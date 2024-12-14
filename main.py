@@ -115,6 +115,16 @@ def display_movie_card(title, genres, image_url, rating_widget=None):
             rating_widget()
 
 
+# Add a function to handle clearing ratings
+def clear_ratings():
+    if 'user_ratings' in st.session_state:
+        st.session_state.user_ratings = pd.Series(np.nan, index=st.session_state.user_ratings.index)
+    # Clear all rating selectbox values
+    for key in list(st.session_state.keys()):
+        if key.startswith('rating_'):
+            del st.session_state[key]
+    st.rerun()  # Use st.rerun() instead of experimental_rerun()
+
 # Streamlit app
 st.title('Movie Recommendation System')
 
@@ -174,9 +184,7 @@ if S is not None and popularity_ranking is not None:
 
     with col2:
         if st.button('Clear All Ratings'):
-            st.session_state.user_ratings = pd.Series(np.nan, index=S.index)
-            st.success('All ratings cleared!')
-            st.experimental_rerun()
+            clear_ratings()
 
     st.header('Rate Movies')
 
@@ -189,7 +197,6 @@ if S is not None and popularity_ranking is not None:
         current_rating = st.session_state.user_ratings.get(movie_id, np.nan)
         current_rating = int(current_rating) if not np.isnan(current_rating) else None
 
-
         # Create rating widget
         def make_rating_widget(movie_id=movie_id):
             rating = st.selectbox('Rating:',
@@ -198,7 +205,6 @@ if S is not None and popularity_ranking is not None:
                                   index=0 if current_rating is None else current_rating)
             if rating is not None:
                 st.session_state.user_ratings[movie_id] = rating
-
 
         # Display movie card
         display_movie_card(row['Title'],
